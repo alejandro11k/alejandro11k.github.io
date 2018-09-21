@@ -1,5 +1,7 @@
+import { PunchLib } from './punch-lib.js'
+
 export class PortWorkletNode extends AudioWorkletNode {
-    constructor(context) {
+    constructor(context, click) {
         super(context, 'processor');
         this.counter = 0;
         this.port.onmessage = this.handleMessage.bind(this);
@@ -8,13 +10,21 @@ export class PortWorkletNode extends AudioWorkletNode {
         timeStamp: this.context.currentTime
         });
 
+        // this.currentPunch = ''
+        this.currentPunch = new PunchLib(context, this)
+        this.click = click
+        //this.currentPunch.gainNode.connect(this) // FIX
         // add
+        
+        /*
         this.oscillator = new OscillatorNode(context)
         this.gainNode = new GainNode(context)
         this.oscillator.connect(this.gainNode)
         this.gainNode.connect(this)
+        */
         //this.oscillator.start()
     }
+
     handleMessage(event) {
         this.counter++;
         console.log('[Node:Received] "' + event.data.message +
@@ -23,8 +33,21 @@ export class PortWorkletNode extends AudioWorkletNode {
         // Notify the processor when the node gets 10 messages. Then reset the
         // counter.
         //this.trigger()
-        this.beep1()
+        //this.beep1()
         //this.kick1()
+        //console.log(this.currentPunch)
+        //this.currentPunch.beep1()
+        switch(this.click) {
+            case 'kick':
+            this.currentPunch.kick1()
+            break
+            case 'beep':
+            this.currentPunch.beep1()
+            break
+            default:
+
+            break
+        }
 
         if (this.counter > 10) {
         this.port.postMessage({
@@ -34,7 +57,12 @@ export class PortWorkletNode extends AudioWorkletNode {
         this.counter = 0;
         }
     }
+
+    getPunch(sound) {
+        this.currentPunch = sound
+    }
     
+    /*
     trigger() {
         const time = this.context.currentTime;
         this.oscillator.frequency.setValueAtTime(150, time);
@@ -72,7 +100,7 @@ export class PortWorkletNode extends AudioWorkletNode {
         this.oscillator = new OscillatorNode(this.context)
         this.oscillator.connect(this.gainNode)
     }
-
+    */
 }
 
 // registerAudioWorkletNode('port-worklet-node', PortWorkletNode)
